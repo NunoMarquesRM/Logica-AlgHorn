@@ -10,27 +10,19 @@ import java.util.Scanner;
  * Nº: 39067
  * 
  * Compile:
- * javac -encoding utf8 proj.java
+ * javac -encoding utf8 main.java
  * 
  * Execute:
- * java -Xmx64M -Xss32M -classpath . proj
+ * java -Xmx64M -Xss32M -classpath . Main
  */
-public class proj {
+public class Main {
     public static ArrayList<ArrayList<Tuple1>> formulas;
     public static Boolean flag;
 
     public static void main(String[] args) {
-        /*
-        * (~p | Q | ~r) & (~t) & (P) & (~T | x | Z) & (F)
-        * NA
-        * (~p | R ) & (~x) & (p) & (~p | x | ~R | x)
-        * UNSAT
-        * (~p | a ) & (p) & (~p | ~R | x) & (~W | P | ~h) & (F) & (~f |~q | e) & (~t | ~k | ~l)
-        * SAT
-        */
         Scanner sc = new Scanner(System.in);
 
-        while(true){
+        while(sc.hasNextLine()){
             String str = sc.nextLine();
             
             if(str.isEmpty()){
@@ -108,8 +100,8 @@ public class proj {
     /* 
     * Função put_extra
     * - Recebe como parâmetro o arraylist temporário da função principal
-    *   Verifica se há alguma clásula com apenas um literal negativo:
-    *     -> Se existir, adiciona a essa clásula o char 'ç' positivo
+    *   Verifica se há alguma cláusula com apenas um literal negativo:
+    *     -> Se existir, adiciona a essa clásula, o char 'ç' positivo
     *     -> Desta forma sabe-se que a fórmula de Horn é contraditória
     */
     public static ArrayList<Tuple1> put_extra(ArrayList<Tuple1> subform)
@@ -130,7 +122,10 @@ public class proj {
     * Função is_formula
     * - Utiliza o arraylist principal formulas
     *   Verifica se a formula é formula de Horn:
-    *     -> 
+    *     -> Caso numa cláusula exista mais do que um literal positivo diferente:
+    *     ----> a função retorna false
+    *     -> Caso não exista:
+    *     ----> a função retorna true
     */
     public static Boolean is_formula(){
         for (int i = 0; i < formulas.size() ; i++){
@@ -140,7 +135,17 @@ public class proj {
         }
         return true;
     }
-
+    /*
+    * Função more_than_one
+    * - Recebe um Arraylist com uma cláusula
+    *   Verifica se numa cláusula existe mais do que um literal positivo diferente
+    *   -> Caso o literal seja positivo:
+    *      -> Se o arraylist c não contiver o char:
+    *         -> Guarda o char no arraylist c
+    *   -> Verifica o tamanho do arraylist:
+    *      -> Se o arraylist for superior a 2, ou seja, contiver mais do que um literal positivo
+    *         -> Retorna true
+    */
     public static Boolean more_than_one(ArrayList<Tuple1> xx){
         ArrayList<Character> c = new ArrayList<>();
 
@@ -156,11 +161,19 @@ public class proj {
         }
         return false;
     }
-
+    /* 
+    * Função horn
+    * Verifica se a fórmula é contraditória ou se é possível
+    */
     public static Boolean horn(){
         ArrayList<Character> verified = new ArrayList<>();
         ArrayList<ArrayList<Tuple1>> aux = new ArrayList<>();
-
+        /*
+        * Se a cláusula contiver apenas um literal positivo:
+        *  -> Adiciona o char ao arraylist verified
+        * Se a cláusula contiver um literal negativo ou vários literais:
+        *  -> Adiciona a cláusula ao arraylist aux
+        */
         for (int i = 0; i < formulas.size() ; i++){
             if(formulas.get(i).size() == 1 && formulas.get(i).get(0).getF()){
                 verified.add(formulas.get(i).get(0).getC());
@@ -169,14 +182,18 @@ public class proj {
                 aux.add(formulas.get(i));
             }
         }
-
+        // Regista o tamanho do arraylist aux que contém as cláusulas
         int line = aux.size();
 
         while(true){
-            //System.out.println(aux.toString());
-
             ArrayList<ArrayList<Tuple1>> new_new = new ArrayList<>();
-
+            /*
+            * O Tuple1 t recebe o Tuple que foi retornado da função auxiliar verified2
+            * Se este literal for positivo:
+            *  -> adiciona o char ao arraylist de chars verified
+            * Se este literal for negativo:
+            *  -> adiciona a cláusula ao novo arraylist principal ( new_new )
+            */
             for (int i = 0; i < aux.size() ; i++){
                 Tuple1 t = verified2(aux.get(i), verified);
                 if(t.getF()){
@@ -186,30 +203,50 @@ public class proj {
                     new_new.add(aux.get(i));
                 }
             }
-
+            // Se contiver o char 'ç'
+            // -> a fórmula é contraditória
             if(verified.contains('ç')){
                 return false;
             }
-
+            /* Se line for igual ao size do novo arraylist principal ( new_new )
+            * -> a formula é possível
+            * -> se não for, a variável line é atualizada com o novo tamanho
+            */
             if(line == new_new.size()){
                 return true;
             }
             else{
                 line = new_new.size();
             }
+            // Caso o 'new_new' for vazio retorna true
             aux = new_new;
-
             if(aux.isEmpty()){
                 return true;
             }
         }
     }
-
+    /*
+    * Função auxiliar verified2
+    * Recebe como parâmetros:
+    *  - arraylist subform que contém as cláusulas
+    *  - arraylist verified que contém os literais (chars)
+    * 
+    * Ciclo for percorre as clásulas todas do arraylist subform:
+    *  -> se o literal daquela cláusula for positivo:
+    *     -> aux é igual ao literal
+    *  -> se o literal daquela cláusula for negativo:
+    *     -> verifica se o literal está contido no arraylist verified:
+    *        -> se não estiver (if negado) entra:
+    *        -> cria um tuplo com o char 1
+    *        -> ( podendo ser um char qualquer e sendo todos literais foi escolhido o número 1 )
+    * Caso nao retorne na condição passada:
+    *  -> retorna o tuplo com o literal 'aux' positivo
+    */
     public static Tuple1 verified2(ArrayList<Tuple1> subform, ArrayList<Character> verified){
         char aux = ' ';
         Tuple1 t;
 
-        for (int i = 0; i < subform.size() ; i++){
+        for (int i = 0; i < subform.size(); i++){
             if(subform.get(i).getF()){
                 aux = subform.get(i).getC();
             }
@@ -224,7 +261,18 @@ public class proj {
         return t;
     }
 }
-
+/*
+* Classe criada para a utilização de Tuplos
+* Variáveis:
+*   -> Boolean f
+*   -> char c
+* Associação automática dos literais positivos e negativos
+* Exemplos:
+*   literal: ~r
+*   Tuple1: (false,'r')
+*   literal: Q
+*   Tuple1: (true,'Q')
+*/
 class Tuple1 {
     
     private Boolean f;
@@ -254,7 +302,6 @@ class Tuple1 {
     public void setC(char c) {
         this.c = c;
     }
-    
 
     @Override
     public String toString() {

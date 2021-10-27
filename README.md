@@ -11,7 +11,7 @@
 
 # Introdução
 
-Este projeto foi realizado no âmbito da Unidade Curricular de Lógica Computacional, do terceiro ano da licenciatura em Engenharia Informática, da Universidade da Beira Interior.
+Este projeto foi realizado no âmbito da Unidade Curricular de Lógica Computacional, do terceiro ano da Licenciatura em Engenharia Informática, da Universidade da Beira Interior.
 
 ## Autores
 
